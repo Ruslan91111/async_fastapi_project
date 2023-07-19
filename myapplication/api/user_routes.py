@@ -3,8 +3,8 @@ from fastapi.routing import APIRouter
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 from .models_api import CreateUser, ShowUser
-from .database import async_session, get_db
-from .models_db import UserDataAccessLayer
+from myapplication.database.database import get_db
+from ..database.data_access_layer import UserDataAccessLayer
 
 
 user_router = APIRouter()

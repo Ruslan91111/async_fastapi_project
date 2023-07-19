@@ -2,7 +2,7 @@
 from typing import Generator
 
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
-from .settings import POSTGRES_URL
+from myapplication.settings import POSTGRES_URL
 
 
 # create async engine

@@ -9,7 +9,7 @@ from starlette.testclient import TestClient
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.sql import text
 
-from myapplication.database import get_db
+from myapplication.database.database import get_db
 from myapplication.settings import TEST_POSTGRES_URL, TEST_POSTGRES_URL_FOR_POOL
 from myapplication.main import app
 

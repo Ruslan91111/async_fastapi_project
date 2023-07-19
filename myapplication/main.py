@@ -2,7 +2,7 @@
 import uvicorn
 from fastapi import FastAPI
 from fastapi.routing import APIRouter
-from .user_routes import user_router
+from myapplication.api.user_routes import user_router
 
 
 app = FastAPI(title="Ruslan's app")
