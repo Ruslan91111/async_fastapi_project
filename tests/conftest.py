@@ -58,13 +58,9 @@ async def clean_test_tables(async_test_session):
 async def _get_test_db():
     try:
         # create async engine for interaction with database
-        engine = create_async_engine(
-            TEST_POSTGRES_URL, future=True, echo=True
-        )
-
+        engine = create_async_engine(TEST_POSTGRES_URL, future=True, echo=True)
         # create session for the interaction with database
-        async_session = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
-
+        test_async_session = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
         yield test_async_session()
     finally:
         pass
@@ -84,15 +80,25 @@ async def asyncpg_pool():
     """Async pool"""
     pool = await asyncpg.create_pool(TEST_POSTGRES_URL_FOR_POOL)
     yield pool
-    pool.close()
+    await pool.close()
 
 
 @pytest.fixture
 async def get_user_from_database(asyncpg_pool):
     """Get the user from database by id."""
-
     async def get_user_from_database_by_uuid(user_id: str):
         async with asyncpg_pool.acquire() as connection:
             return await connection.fetch("SELECT * FROM users WHERE user_id = $1;", user_id)
+    yield get_user_from_database_by_uuid
 
-    return get_user_from_database_by_uuid
+
+@pytest.fixture
+async def create_user_in_database(asyncpg_pool):
+    """Create user in database."""
+    async def create_user_in_database(user_id: str, name: str, surname: str,
+                                      email: str, is_active: bool):
+        async with asyncpg_pool.acquire() as connection:
+            return await connection.execute("INSERT INTO users "
+                                            "VALUES ($1, $2, $3, $4, $5);",
+                                            user_id, name, surname, email, is_active)
+    yield create_user_in_database

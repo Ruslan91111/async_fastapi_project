@@ -1,5 +1,8 @@
 """Data access layer"""
+from typing import Optional
+from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import update, and_
 
 from .models_db import User
 
@@ -19,3 +22,12 @@ class UserDataAccessLayer:
         self.db_session.add(new_user)
         await self.db_session.flush()
         return new_user
+
+    async def delete_user(self, user_id: UUID) -> Optional[UUID]:
+        """Delete user."""
+        query = update(User).where(and_(User.user_id == user_id, User.is_active == True)).\
+            values(is_active=False).returning(User.user_id)
+        result = await self.db_session.execute(query)
+        deleted_user_id_row = result.fetchone()
+        if deleted_user_id_row is not None:
+            return deleted_user_id_row[0]

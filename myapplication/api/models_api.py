@@ -11,8 +11,8 @@ LETTER_MATCH_PATTERN = re.compile(r"^[а-яА-Яa-zA-Z\-]+$")
 
 class BaseModelForAPI(BaseModel):
     """Everything convert to JSON"""
-    class Config:
-        orm_mode = True
+    class ConfigDict:
+        from_attributes = True
 
 
 class ShowUser(BaseModelForAPI):
@@ -47,3 +47,8 @@ class CreateUser(BaseModel):
                 status_code=422, detail="Surname should contains only letters"
             )
         return value
+
+
+class DeleteUserResponse(BaseModel):
+    """Response after delete user."""
+    deleted_user_id: uuid.UUID
