@@ -2,7 +2,7 @@
 from typing import Optional
 from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import update, and_
+from sqlalchemy import update, and_, select
 
 from .models_db import User
 
@@ -31,3 +31,20 @@ class UserDataAccessLayer:
         deleted_user_id_row = result.fetchone()
         if deleted_user_id_row is not None:
             return deleted_user_id_row[0]
+
+    async def get_user(self, user_id: UUID) -> Optional[UUID]:
+        """Get a user."""
+        query = select(User).where(User.user_id == user_id)
+        result = await self.db_session.execute(query)
+        user_from_table = result.fetchone()
+        if user_from_table is not None:
+            return user_from_table[0]
+
+    async def update_user(self, user_id: UUID, **parameters_for_update_user) -> Optional[UUID]:
+        """Update a user."""
+        query = update(User).where(and_(User.user_id == user_id, User.is_active == True)).\
+            values(parameters_for_update_user).returning(User.user_id)
+        result = await self.db_session.execute(query)
+        updated_user = result.fetchone()
+        if updated_user is not None:
+            return updated_user[0]
