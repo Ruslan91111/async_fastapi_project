@@ -5,11 +5,16 @@ from uuid import UUID
 from fastapi.routing import APIRouter
 from fastapi import Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.exc import IntegrityError
+
+from logging import getLogger
+
 from myapplication.database.database import get_db
 from .models_api import CreateUserRequest, ShowUser, DeleteUserResponse, \
     UpdateUserResponse, UpdateUserRequest
 from ..database.data_access_layer import UserDataAccessLayer
 
+logger = getLogger(__name__)
 
 user_router = APIRouter()
 
@@ -65,20 +70,26 @@ async def _update_user(parameters_for_update_user: dict, user_id: UUID, db) -> O
             user_dal = UserDataAccessLayer(session)
             updated_user_id = await user_dal.update_user(
                 user_id=user_id,
-
                 **parameters_for_update_user,
             )
             return updated_user_id
 
 
 @user_router.post("/", response_model=ShowUser)
-async def create_user(body: CreateUserRequest, db: AsyncSession = Depends(get_db)) -> ShowUser:
+async def create_user(body: CreateUserRequest,
+                      db: AsyncSession = Depends(get_db)) -> ShowUser:
     """Create user"""
-    return await _create_new_user(body, db)
+    try:
+        return await _create_new_user(body, db)
+    except IntegrityError as err:
+        logger.error(err)
+        raise HTTPException(status_code=409,
+                            detail="The email address you entered is already registered.")
 
 
 @user_router.delete("/", response_model=DeleteUserResponse)
-async def delete_user(user_id: UUID, db: AsyncSession = Depends(get_db)) -> DeleteUserResponse:
+async def delete_user(user_id: UUID,
+                      db: AsyncSession = Depends(get_db)) -> DeleteUserResponse:
     """Delete user handler."""
     deleted_user_id = await _delete_user(user_id, db)
     if deleted_user_id is None:
@@ -109,6 +120,12 @@ async def update_user(
     if user_from_db_for_update is None:
         raise HTTPException(
             status_code=404, detail=f"User with id {user_id} not found.")
-    updated_user_id = await _update_user(parameters_for_update_user=parameters_for_update_user,
-                                         db=db, user_id=user_id)
+
+    try:
+        updated_user_id = await _update_user(parameters_for_update_user=parameters_for_update_user,
+                                             db=db, user_id=user_id)
+    except IntegrityError as err:
+        logger.error(err)
+        raise HTTPException(status_code=409,
+                            detail="The email address you entered is already registered.")
     return UpdateUserResponse(updated_user_id=updated_user_id)

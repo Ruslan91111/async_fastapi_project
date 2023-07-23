@@ -25,6 +25,7 @@ TABLES_FOR_CLEANING = [
 
 @pytest.fixture(scope="session")
 def event_loop():
+    """For work with coroutines."""
     loop = asyncio.get_event_loop_policy().new_event_loop()
     yield loop
     loop.close()
@@ -77,7 +78,7 @@ async def client() -> Generator[TestClient, Any, None]:
 
 @pytest.fixture(scope="session")
 async def asyncpg_pool():
-    """Async pool"""
+    """Async pool for interactions with database."""
     pool = await asyncpg.create_pool(TEST_POSTGRES_URL_FOR_POOL)
     yield pool
     await pool.close()
