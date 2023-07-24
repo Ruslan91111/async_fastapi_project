@@ -79,7 +79,7 @@ async def test_create_user_try_input_same_email(client, get_user_from_database):
                               ),
                              (
                                      {"name": "", "surname": "McClane", "email": "John@mail.com"}, 422,
-                                     detail_for_wrong_email
+                                     {"detail": "Name should contains only letters"}
                              ),
                          ])
 async def test_create_user_validation_error(client, user_data, expected_status_code, expected_detail):
