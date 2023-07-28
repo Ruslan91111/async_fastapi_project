@@ -12,12 +12,13 @@ class UserDataAccessLayer:
     def __init__(self, db_session: AsyncSession):
         self.db_session = db_session
 
-    async def create_user(self, name: str, surname: str, email: str) -> User:
+    async def create_user(self, name: str, surname: str, email: str, password: str) -> User:
         """Create user"""
         new_user = User(
             name=name,
             surname=surname,
-            email=email
+            email=email,
+            password=password
         )
         self.db_session.add(new_user)
         await self.db_session.flush()
