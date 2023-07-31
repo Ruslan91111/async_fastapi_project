@@ -33,9 +33,17 @@ class UserDataAccessLayer:
         if deleted_user_id_row is not None:
             return deleted_user_id_row[0]
 
-    async def get_user(self, user_id: UUID) -> Optional[UUID]:
-        """Get a user."""
+    async def get_user_from_db_by_id(self, user_id: UUID) -> Optional[UUID]:
+        """Get a user from database by id."""
         query = select(User).where(User.user_id == user_id)
+        result = await self.db_session.execute(query)
+        user_from_table = result.fetchone()
+        if user_from_table is not None:
+            return user_from_table[0]
+
+    async def get_user_from_db_by_email(self, email: str) -> Optional[UUID]:
+        """Get a user from database by email."""
+        query = select(User).where(User.email == email)
         result = await self.db_session.execute(query)
         user_from_table = result.fetchone()
         if user_from_table is not None:

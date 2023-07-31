@@ -3,3 +3,4 @@ venv/
 .env
 alembic.ini
 /tests/migrations/versions/
+/migrations/versions/
