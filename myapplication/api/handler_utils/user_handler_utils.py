@@ -6,6 +6,7 @@ from myapplication.api.models_api import CreateUserRequest, ShowUser
 from myapplication.database.data_access_layer import UserDataAccessLayer
 from myapplication.hasher import Hasher
 
+
 async def _create_new_user(body: CreateUserRequest, session) -> ShowUser:
     """Create user. Should use in handler post('/')"""
     async with session.begin():
@@ -33,11 +34,11 @@ async def _delete_user(user_id, session) -> Optional[UUID]:
         return deleted_user_id
 
 
-async def _get_user(user_id, session) -> Optional[ShowUser]:
+async def _get_user_by_id(user_id, session) -> Optional[ShowUser]:
     """Get user from DB by user_id. Should use in handler get."""
     async with session.begin():
         user_dal = UserDataAccessLayer(session)
-        user_from_database = await user_dal.get_user(user_id=user_id)
+        user_from_database = await user_dal.get_user_from_db_by_id(user_id=user_id)
         if user_from_database is not None:
             return ShowUser(
                 user_id=user_from_database.user_id,
@@ -48,7 +49,8 @@ async def _get_user(user_id, session) -> Optional[ShowUser]:
             )
 
 
-async def _update_user(parameters_for_update_user: dict, user_id: UUID, session) -> Optional[UUID]:
+async def _update_user(parameters_for_update_user: dict, user_id: UUID,
+                       session) -> Optional[UUID]:
     """Update user."""
     async with session.begin():
         user_dal = UserDataAccessLayer(session)

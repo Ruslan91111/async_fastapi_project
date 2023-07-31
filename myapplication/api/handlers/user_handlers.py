@@ -1,4 +1,4 @@
-"""Routes for interaction with user model"""
+"""Handlers for interact with user's routes."""
 from uuid import UUID
 
 from fastapi.routing import APIRouter
@@ -8,8 +8,8 @@ from sqlalchemy.exc import IntegrityError
 
 from logging import getLogger
 
-from myapplication.api.handlers_utils.user_handler_utils import _create_new_user, \
-    _delete_user, _get_user, _update_user
+from myapplication.api.handler_utils.user_handler_utils import _create_new_user, \
+    _delete_user, _get_user_by_id, _update_user
 from myapplication.database.database import get_db
 from myapplication.api.models_api import CreateUserRequest, ShowUser, DeleteUserResponse, \
     UpdateUserResponse, UpdateUserRequest
@@ -44,7 +44,7 @@ async def delete_user(user_id: UUID,
 @user_router.get("/", response_model=ShowUser)
 async def get_user(user_id: UUID, db: AsyncSession = Depends(get_db)) -> ShowUser:
     """Get user handler."""
-    user_from_database = await _get_user(user_id, db)
+    user_from_database = await _get_user_by_id(user_id, db)
     if user_from_database is None:
         raise HTTPException(status_code=404,
                             detail=f"User with id {user_id} not found.")
@@ -60,7 +60,7 @@ async def update_user(
     if parameters_for_update_user == {}:
         raise HTTPException(
             status_code=422, detail="You didn't specify any parameters.")
-    user_from_db_for_update = await _get_user(user_id, db)
+    user_from_db_for_update = await _get_user_by_id(user_id, db)
     if user_from_db_for_update is None:
         raise HTTPException(
             status_code=404, detail=f"User with id {user_id} not found.")
