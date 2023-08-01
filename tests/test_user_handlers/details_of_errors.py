@@ -7,9 +7,17 @@ detail_for_empty_fields = {'detail': [
      'msg': 'Field required', 'input': {},
      'url': 'https://errors.pydantic.dev/2.1.2/v/missing'},
     {'type': 'missing', 'loc': ['body', 'email'], 'msg': 'Field required',
-     'input': {}, 'url': 'https://errors.pydantic.dev/2.1.2/v/missing'}
-]
-}
+     'input': {}, 'url': 'https://errors.pydantic.dev/2.1.2/v/missing'},
+    {'type': 'missing', 'loc': ['body', 'password'], 'msg': 'Field required',
+     'input': {}, 'url': 'https://errors.pydantic.dev/2.1.2/v/missing'}]}
+
+detail_for_empty_fields_update = {'detail': [
+    {'type': 'missing', 'loc': ['body', 'name'], 'msg': 'Field required',
+     'input': {}, 'url': 'https://errors.pydantic.dev/2.1.2/v/missing'},
+    {'type': 'missing', 'loc': ['body', 'surname'], 'msg': 'Field required',
+     'input': {}, 'url': 'https://errors.pydantic.dev/2.1.2/v/missing'},
+    {'type': 'missing', 'loc': ['body', 'email'], 'msg': 'Field required',
+     'input': {}, 'url': 'https://errors.pydantic.dev/2.1.2/v/missing'}]}
 
 detail_for_wrong_email = {'detail': [
     {'type': 'value_error', 'loc': ['body', 'email'],

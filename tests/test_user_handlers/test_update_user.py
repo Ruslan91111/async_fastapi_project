@@ -2,8 +2,9 @@
 import json
 import uuid
 import pytest
-from .details_of_errors import detail_for_empty_fields, detail_for_wrong_email, \
-    detail_for_wrong_email_from_update, detail_string_too_short, detail_update_invalid_user_id
+from .details_of_errors import (detail_for_empty_fields, detail_for_wrong_email,
+                                detail_for_wrong_email_from_update, detail_string_too_short,
+                                detail_update_invalid_user_id, detail_for_empty_fields_update)
 
 
 async def test_update_user(client, create_user_in_database, get_user_from_database):
@@ -13,12 +14,14 @@ async def test_update_user(client, create_user_in_database, get_user_from_databa
         "name": "John",
         "surname": "Smith",
         "email": "Smith@mail.com",
-        "is_active": True
+        "is_active": True,
+        "password": "password"
     }
     user_data_for_update = {
         "name": "Ivan",
         "surname": "Drago",
         "email": "Smith@mail.com",
+        "password": "password"
     }
     await create_user_in_database(**user_data)
     response_after_update = client.patch(f"/user/?user_id={user_data['user_id']}",
@@ -43,21 +46,24 @@ async def test_update_user_one_is_updated_other_not(client, create_user_in_datab
         "name": "John",
         "surname": "Smith",
         "email": "Smith@mail.com",
-        "is_active": True
+        "is_active": True,
+        "password": "password"
     }
     user_data_2 = {
         "user_id": uuid.uuid4(),
         "name": "Richard",
         "surname": "Henderson",
         "email": "Henderson@mail.com",
-        "is_active": True
+        "is_active": True,
+        "password": "password"
     }
     user_data_3 = {
         "user_id": uuid.uuid4(),
         "name": "Adam",
         "surname": "Pack",
         "email": "Packman@mail.com",
-        "is_active": True
+        "is_active": True,
+        "password": "password"
     }
     user_data_for_update = {
         "name": "newname",
@@ -102,7 +108,7 @@ async def test_update_user_one_is_updated_other_not(client, create_user_in_datab
 
 @pytest.mark.parametrize("user_data_for_update, expected_status_code, expected_detail",
                          [
-                             ({}, 422, detail_for_empty_fields),
+                             ({}, 422, detail_for_empty_fields_update),
                              (
                                      {"name": "John1"},
                                      422,
@@ -132,13 +138,17 @@ async def test_update_user_validation_error(client, create_user_in_database,
         "name": "John",
         "surname": "Smith",
         "email": "Smith@mail.com",
-        "is_active": True
+        "is_active": True,
+        "password": "password"
     }
     await create_user_in_database(**user_data)
     response = client.patch(f"/user/?user_id={user_data['user_id']}",
                             content=json.dumps(user_data_for_update))
     data_from_response = response.json()
     assert response.status_code == expected_status_code
+    print(data_from_response)
+    print('##################################################')
+    print(expected_detail)
     assert data_from_response == expected_detail
 
 
@@ -148,6 +158,7 @@ async def test_update_user_invalid_user_id(client, create_user_in_database, get_
         "name": "Ivan",
         "surname": "Drago",
         "email": "Ivan@mail.com",
+        "password": "password"
     }
     response_after_update = client.patch(f"/user/?user_id=123",
                                          content=json.dumps(user_data_for_update))
@@ -164,21 +175,24 @@ async def test_update_user_duplicate_email(client, create_user_in_database, get_
         "name": "Ivan",
         "surname": "Drago",
         "email": "Ivan@mail.com",
-        "is_active": True
+        "is_active": True,
+        "password": "password"
     }
     user_data_2 = {
         "user_id": uuid.uuid4(),
         "name": "Boris",
         "surname": "Blade",
         "email": "BorisB@mail.com",
-        "is_active": True
+        "is_active": True,
+        "password": "password"
     }
     user_data_3 = {
         "user_id": uuid.uuid4(),
         "name": "Vladimir",
         "surname": "Tran",
         "email": "TranB@mail.com",
-        "is_active": True
+        "is_active": True,
+        "password": "password"
     }
     user_data_for_update = {
         "email": user_data_2["email"],

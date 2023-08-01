@@ -11,7 +11,8 @@ async def test_get_user(client, create_user_in_database):
         "name": "John",
         "surname": "Smith",
         "email": "Smith@mail.com",
-        "is_active": True
+        "is_active": True,
+        "password": "password"
     }
     await create_user_in_database(**user_data)
     response = client.get(f"/user/?user_id={user_data['user_id']}")
@@ -32,7 +33,8 @@ async def test_get_user_by_wrong_user_id(client, create_user_in_database,
         "name": "John",
         "surname": "Smith",
         "email": "Smith@mail.com",
-        "is_active": True
+        "is_active": True,
+        "password": "password"
     }
     await create_user_in_database(**user_data)
     fake_user_id = uuid.uuid4()
@@ -49,7 +51,8 @@ async def test_get_user_validation_error(client, create_user_in_database,
         "name": "John",
         "surname": "Smith",
         "email": "Smith@mail.com",
-        "is_active": True
+        "is_active": True,
+        "password": "password"
     }
     await create_user_in_database(**user_data)
     response = client.get(f"/user/?user_id=not_valid_user_id")

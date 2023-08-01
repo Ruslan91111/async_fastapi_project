@@ -11,7 +11,8 @@ async def test_create_user(client, get_user_from_database):
     user_data = {
         "name": "John",
         "surname": "Smith",
-        "email": "Smith@mail.com"
+        "email": "Smith@mail.com",
+        "password": "password"
     }
     response = client.post("/user/", content=json.dumps(user_data))
     data_from_response = response.json()
@@ -36,12 +37,14 @@ async def test_create_user_try_input_same_email(client, get_user_from_database):
     user_data = {
         "name": "John",
         "surname": "Smith",
-        "email": "Smith@mail.com"
+        "email": "Smith@mail.com",
+        "password": "password"
     }
     user_data_with_same_email = {
         "name": "Michael",
         "surname": "Thorn",
-        "email": "Smith@mail.com"
+        "email": "Smith@mail.com",
+        "password": "password"
     }
     response = client.post("/user/", content=json.dumps(user_data))
     data_from_response = response.json()
@@ -67,18 +70,22 @@ async def test_create_user_try_input_same_email(client, get_user_from_database):
                          [
                              ({}, 422, detail_for_empty_fields),
                              (
-                                     {"name": "John1", "surname": "McClane", "email": "John@mail.com"}, 422,
+                                     {"name": "John1", "surname": "McClane", "email": "John@mail.com",
+                                      "password": "password"}, 422,
                                      {"detail": "Name should contains only letters"}
                              ),
                              (
-                                     {"name": "John", "surname": "McClane2", "email": "John@mail.com"}, 422,
+                                     {"name": "John", "surname": "McClane2", "email": "John@mail.com",
+                                      "password": "password"}, 422,
                                      {"detail": "Surname should contains only letters"}
                              ),
                              (
-                                 {"name": "John", "surname": "McClane", "email": "John"}, 422, detail_for_wrong_email
+                                 {"name": "John", "surname": "McClane", "email": "John",
+                                  "password": "password"}, 422, detail_for_wrong_email
                               ),
                              (
-                                     {"name": "", "surname": "McClane", "email": "John@mail.com"}, 422,
+                                     {"name": "", "surname": "McClane", "email": "John@mail.com",
+                                      "password": "password"}, 422,
                                      {"detail": "Name should contains only letters"}
                              ),
                          ])
@@ -86,7 +93,11 @@ async def test_create_user_validation_error(client, user_data, expected_status_c
     """Test 'create user' handler. TestCase when user inputs wrong data."""
     response = client.post("/user/", content=json.dumps(user_data))
     data_from_response = response.json()
+    print('#################################################')
     print(data_from_response)
+    print('#################################################')
+    print(expected_detail)
+    print('#################################################')
     assert response.status_code == expected_status_code
     assert data_from_response == expected_detail
 

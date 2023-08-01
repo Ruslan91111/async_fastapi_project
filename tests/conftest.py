@@ -97,9 +97,9 @@ async def get_user_from_database(asyncpg_pool):
 async def create_user_in_database(asyncpg_pool):
     """Create user in database."""
     async def create_user_in_database(user_id: str, name: str, surname: str,
-                                      email: str, is_active: bool):
+                                      email: str, is_active: bool, password: str):
         async with asyncpg_pool.acquire() as connection:
             return await connection.execute("INSERT INTO users "
-                                            "VALUES ($1, $2, $3, $4, $5);",
-                                            user_id, name, surname, email, is_active)
+                                            "VALUES ($1, $2, $3, $4, $5, $6);",
+                                            user_id, name, surname, email, is_active, password)
     yield create_user_in_database

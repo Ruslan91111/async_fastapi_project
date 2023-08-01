@@ -11,7 +11,8 @@ async def test_delete_user(client, create_user_in_database, get_user_from_databa
         "name": "John",
         "surname": "Smith",
         "email": "Smith@mail.com",
-        "is_active": True
+        "is_active": True,
+        "password": "password"
     }
     await create_user_in_database(**user_data)
     response = client.delete(f"/user/?user_id={user_data['user_id']}")

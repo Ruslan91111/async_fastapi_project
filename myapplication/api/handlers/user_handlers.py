@@ -53,21 +53,21 @@ async def get_user(user_id: UUID, db: AsyncSession = Depends(get_db)) -> ShowUse
 
 @user_router.patch("/", response_model=UpdateUserResponse)
 async def update_user(
-        user_id: UUID, body: UpdateUserRequest, db: AsyncSession = Depends(get_db)
+        user_id: UUID, body: UpdateUserRequest, session: AsyncSession = Depends(get_db)
 ) -> UpdateUserResponse:
     """Update user handler."""
     parameters_for_update_user = body.model_dump(exclude_none=True)
     if parameters_for_update_user == {}:
         raise HTTPException(
             status_code=422, detail="You didn't specify any parameters.")
-    user_from_db_for_update = await _get_user_by_id(user_id, db)
+    user_from_db_for_update = await _get_user_by_id(user_id, session)
     if user_from_db_for_update is None:
         raise HTTPException(
             status_code=404, detail=f"User with id {user_id} not found.")
 
     try:
         updated_user_id = await _update_user(parameters_for_update_user=parameters_for_update_user,
-                                             db=db, user_id=user_id)
+                                             session=session, user_id=user_id)
     except IntegrityError as err:
         logger.error(err)
         raise HTTPException(status_code=409,
