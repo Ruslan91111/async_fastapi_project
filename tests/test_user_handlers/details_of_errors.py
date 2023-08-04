@@ -78,3 +78,8 @@ detail_update_invalid_user_id = {'detail': [
                                      'function-after[uuid_validator(), union[str,bytes]]'],
      'msg': 'Input should be a valid UUID, unable to parse string as an UUID', 'input': '123'}]}
 
+detail_test_update_user_duplicate_email = {'detail': [
+    {'type': 'missing', 'loc': ['body', 'name'], 'msg': 'Field required',
+     'input': {'email': 'BorisB@mail.com'}, 'url': 'https://errors.pydantic.dev/2.1.2/v/missing'},
+    {'type': 'missing', 'loc': ['body', 'surname'], 'msg': 'Field required',
+     'input': {'email': 'BorisB@mail.com'}, 'url': 'https://errors.pydantic.dev/2.1.2/v/missing'}]}

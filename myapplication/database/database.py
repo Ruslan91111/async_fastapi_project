@@ -12,10 +12,10 @@ engine = create_async_engine(POSTGRES_URL, echo=True)
 async_session = async_sessionmaker(engine, expire_on_commit=False, class_=AsyncSession)
 
 
-async def get_db() -> Generator:
-    """Get async session."""
+async def get_session_db() -> Generator:
+    """Get async session_db."""
     try:
-        session: AsyncSession = async_session()
-        yield session
+        session_db: AsyncSession = async_session()
+        yield session_db
     finally:
-        await session.close()
+        await session_db.close()

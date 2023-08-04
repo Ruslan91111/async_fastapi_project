@@ -7,10 +7,10 @@ from myapplication.database.data_access_layer import UserDataAccessLayer
 from myapplication.hasher import Hasher
 
 
-async def _create_new_user(body: CreateUserRequest, session) -> ShowUser:
+async def _create_new_user(body: CreateUserRequest, session_db) -> ShowUser:
     """Create user. Should use in handler post('/')"""
-    async with session.begin():
-        user_dal = UserDataAccessLayer(session)
+    async with session_db.begin():
+        user_dal = UserDataAccessLayer(session_db)
         user = await user_dal.create_user(
             name=body.name,
             surname=body.surname,
@@ -26,18 +26,18 @@ async def _create_new_user(body: CreateUserRequest, session) -> ShowUser:
         )
 
 
-async def _delete_user(user_id, session) -> Optional[UUID]:
+async def _delete_user(user_id, session_db) -> Optional[UUID]:
     """Delete user. Should use in handler delete."""
-    async with session.begin():
-        user_dal = UserDataAccessLayer(session)
+    async with session_db.begin():
+        user_dal = UserDataAccessLayer(session_db)
         deleted_user_id = await user_dal.delete_user(user_id=user_id)
         return deleted_user_id
 
 
-async def _get_user_by_id(user_id, session) -> Optional[ShowUser]:
+async def _get_user_by_id(user_id, session_db) -> Optional[ShowUser]:
     """Get user from DB by user_id. Should use in handler get."""
-    async with session.begin():
-        user_dal = UserDataAccessLayer(session)
+    async with session_db.begin():
+        user_dal = UserDataAccessLayer(session_db)
         user_from_database = await user_dal.get_user_from_db_by_id(user_id=user_id)
         if user_from_database is not None:
             return ShowUser(
@@ -50,10 +50,10 @@ async def _get_user_by_id(user_id, session) -> Optional[ShowUser]:
 
 
 async def _update_user(parameters_for_update_user: dict, user_id: UUID,
-                       session) -> Optional[UUID]:
+                       session_db) -> Optional[UUID]:
     """Update user."""
-    async with session.begin():
-        user_dal = UserDataAccessLayer(session)
+    async with session_db.begin():
+        user_dal = UserDataAccessLayer(session_db)
         updated_user_id = await user_dal.update_user(
             user_id=user_id,
             **parameters_for_update_user,

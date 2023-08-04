@@ -2,13 +2,16 @@
 import json
 import uuid
 import pytest
+
 from .details_of_errors import (detail_for_empty_fields, detail_for_wrong_email,
                                 detail_for_wrong_email_from_update, detail_string_too_short,
-                                detail_update_invalid_user_id, detail_for_empty_fields_update)
+                                detail_update_invalid_user_id, detail_for_empty_fields_update,
+                                detail_test_update_user_duplicate_email)
+from ..conftest import create_test_auth_headers_for_user
 
 
 async def test_update_user(client, create_user_in_database, get_user_from_database):
-    """Test 'update user' handler."""
+    """Test 'update user' handler with everything ok."""
     user_data = {
         "user_id": uuid.uuid4(),
         "name": "John",
@@ -25,7 +28,9 @@ async def test_update_user(client, create_user_in_database, get_user_from_databa
     }
     await create_user_in_database(**user_data)
     response_after_update = client.patch(f"/user/?user_id={user_data['user_id']}",
-                                         content=json.dumps(user_data_for_update))
+                                         content=json.dumps(user_data_for_update),
+                                         headers=create_test_auth_headers_for_user(
+                                             user_data["email"]))
     assert response_after_update.status_code == 200
     response_data = response_after_update.json()
     assert response_data["updated_user_id"] == str(user_data["user_id"])
@@ -73,7 +78,9 @@ async def test_update_user_one_is_updated_other_not(client, create_user_in_datab
     for user_data in [user_data_1, user_data_2, user_data_3]:
         await create_user_in_database(**user_data)
     response_after_update = client.patch(f"/user/?user_id={user_data_1['user_id']}",
-                                         content=json.dumps(user_data_for_update))
+                                         content=json.dumps(user_data_for_update),
+                                         headers=create_test_auth_headers_for_user(
+                                             user_data["email"]))
     assert response_after_update.status_code == 200
     response_data = response_after_update.json()
     assert response_data["updated_user_id"] == str(user_data_1["user_id"])
@@ -131,8 +138,10 @@ async def test_update_user_one_is_updated_other_not(client, create_user_in_datab
                              )
                          ])
 async def test_update_user_validation_error(client, create_user_in_database,
-                                            user_data_for_update, expected_status_code, expected_detail):
-    """Test 'create user' handler. TestCase when user inputs wrong data."""
+                                            user_data_for_update,
+                                            expected_status_code,
+                                            expected_detail):
+    """Test 'update user' handler. TestCase when user inputs wrong data."""
     user_data = {
         "user_id": uuid.uuid4(),
         "name": "John",
@@ -143,25 +152,36 @@ async def test_update_user_validation_error(client, create_user_in_database,
     }
     await create_user_in_database(**user_data)
     response = client.patch(f"/user/?user_id={user_data['user_id']}",
-                            content=json.dumps(user_data_for_update))
+                            content=json.dumps(user_data_for_update),
+                            headers=create_test_auth_headers_for_user(
+                                user_data["email"]))
     data_from_response = response.json()
     assert response.status_code == expected_status_code
-    print(data_from_response)
-    print('##################################################')
-    print(expected_detail)
     assert data_from_response == expected_detail
 
 
 async def test_update_user_invalid_user_id(client, create_user_in_database, get_user_from_database):
     """Test 'update user' handler, try to update with invalid user_id."""
+    user_data = {
+        "user_id": uuid.uuid4(),
+        "name": "John",
+        "surname": "Smith",
+        "email": "Smith@mail.com",
+        "is_active": True,
+        "password": "password"
+    }
+
     user_data_for_update = {
         "name": "Ivan",
         "surname": "Drago",
         "email": "Ivan@mail.com",
         "password": "password"
     }
+    await create_user_in_database(**user_data)
+    jwt_for_attempt_to_update = create_test_auth_headers_for_user(user_data["email"])
     response_after_update = client.patch(f"/user/?user_id=123",
-                                         content=json.dumps(user_data_for_update))
+                                         content=json.dumps(user_data_for_update),
+                                         headers=jwt_for_attempt_to_update)
     assert response_after_update.status_code == 422
     response_data = response_after_update.json()
     assert response_data == detail_update_invalid_user_id
@@ -200,6 +220,71 @@ async def test_update_user_duplicate_email(client, create_user_in_database, get_
     for user_data in [user_data_1, user_data_2, user_data_3]:
         await create_user_in_database(**user_data)
     response_after_update = client.patch(f"/user/?user_id={user_data_1['user_id']}",
-                                         content=json.dumps(user_data_for_update))
+                                         content=json.dumps(user_data_for_update),
+                                         headers=create_test_auth_headers_for_user(
+                                             user_data["email"]))
     assert response_after_update.status_code == 422
     response_data = response_after_update.json()
+    assert response_data == detail_test_update_user_duplicate_email
+
+
+async def test_update_user_with_invalid_token_by_wrong_email(
+        client, create_user_in_database,get_user_from_database):
+    """Try to update user using a invalid access token.
+    Create jwt using not the same email. """
+
+    user_data = {
+        "user_id": uuid.uuid4(),
+        "name": "John",
+        "surname": "Smith",
+        "email": "Smith@mail.com",
+        "is_active": True,
+        "password": "password"
+    }
+
+    user_data_for_update = {
+        "name": "Ivan",
+        "surname": "Drago",
+        "email": "Smith@mail.com",
+        "password": "password"
+    }
+
+    await create_user_in_database(**user_data)
+    response = client.patch(f"/user/?user_id=not_valid_user_id",
+                          headers=create_test_auth_headers_for_user(
+                              user_data["email"] + "some_string"
+                          ))
+    assert response.status_code == 401
+    data_from_response = response.json()
+    assert data_from_response == {"detail": "Could not validate your credentials"}
+
+
+async def test_update_user_with_invalid_broken_token(
+        client, create_user_in_database, get_user_from_database):
+    """Try to update user using a invalid access token -
+    token with some extra symbols."""
+
+    user_data = {
+        "user_id": uuid.uuid4(),
+        "name": "John",
+        "surname": "Smith",
+        "email": "Smith@mail.com",
+        "is_active": True,
+        "password": "password"
+    }
+    user_data_for_update = {
+        "name": "Ivan",
+        "surname": "Drago",
+        "email": "Smith@mail.com",
+        "password": "password"
+    }
+
+    await create_user_in_database(**user_data)
+    auth_headers_broken_token = create_test_auth_headers_for_user(user_data["email"])
+    auth_headers_broken_token["Authorization"] += "Something that should not be in token"
+
+    response = client.patch(f"/user/?user_id=not_valid_user_id",
+                          headers=auth_headers_broken_token)
+    assert response.status_code == 401
+    data_from_response = response.json()
+    assert data_from_response == {"detail": "Could not validate your credentials"}

@@ -1,6 +1,7 @@
 """Test configuration"""
 import asyncio
 import os
+from datetime import timedelta
 from typing import Generator, Any
 
 import asyncpg
@@ -9,10 +10,11 @@ from starlette.testclient import TestClient
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
 from sqlalchemy.sql import text
 
-from myapplication.database.database import get_db
-from myapplication.settings import TEST_POSTGRES_URL, TEST_POSTGRES_URL_FOR_POOL
+from myapplication.database.database import get_session_db
+from myapplication.settings import (TEST_POSTGRES_URL, TEST_POSTGRES_URL_FOR_POOL,
+                                    ACCESS_TOKEN_EXPIRES_MINUTES)
 from myapplication.main import app
-
+from myapplication.token_maker import create_access_token
 
 test_engine = create_async_engine(TEST_POSTGRES_URL, future=True, echo=True)
 test_async_session = async_sessionmaker(test_engine, expire_on_commit=False, class_=AsyncSession)
@@ -71,7 +73,7 @@ async def _get_test_db():
 async def client() -> Generator[TestClient, Any, None]:
     """ Create a TestClient."""
 
-    app.dependency_overrides[get_db] = _get_test_db
+    app.dependency_overrides[get_session_db] = _get_test_db
     with TestClient(app) as client:
         yield client
 
@@ -103,3 +105,11 @@ async def create_user_in_database(asyncpg_pool):
                                             "VALUES ($1, $2, $3, $4, $5, $6);",
                                             user_id, name, surname, email, is_active, password)
     yield create_user_in_database
+
+
+def create_test_auth_headers_for_user(email: str) -> dict[str, str]:
+    """Create and get test access token to authenticate in tests."""
+    test_access_token = create_access_token(
+        data={"sub": email},
+        expires_delta=timedelta(minutes=ACCESS_TOKEN_EXPIRES_MINUTES),)
+    return {"Authorization": f"Bearer {test_access_token}"}
